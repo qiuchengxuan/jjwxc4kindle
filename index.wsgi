@@ -24,8 +24,7 @@ class getcontent:
            not i.bookid.isdigit() or not i.chapterid.isdigit():
              return "invalid bookid or chapterid"
 
-        res = urlopen('http://wap.jjwxc.net/book2/%s/%s'%\
-                      (i.bookid, i.chapterid))
+        res = urlopen('http://m.jjwxc.net/book2/%s/%s'%(i.bookid, i.chapterid))
         while 'b module' not in res.readline():
             pass
         content = res.readline().decode('gbk')
