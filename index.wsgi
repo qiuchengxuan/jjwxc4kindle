@@ -13,9 +13,8 @@ urls = (
 
 class index:
     def GET(self):
-        with open('static/index.html') as f:
-            content = f.read()
-        return str(render.base('Kindle看晋江')) + content
+        res = urlopen('http://m.jjwxc.net/')
+        return reduce(lambda a, b: a + b, res.readlines())
 
 class getcontent:
     def GET(self):
