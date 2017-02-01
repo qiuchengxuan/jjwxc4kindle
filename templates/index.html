@@ -1,0 +1,22 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>jjwxc4kindle</title>
+  </head>
+  <body>
+    <p>这是开源项目<a href='https://github.com/qiuchengxuan/jjwxc4kindle'>jjwxc4kindle</a>的示例部署， 你可以使用此代码在自己的docker环境/服务器上部署此程序</p>
+    <p>我想大概有人可能会考虑到盗号的风险，不可否认的是，虽然我是通过github以自动持续集成的方式部署在daocloud上的，但是我想大概我并不能把自己的账号拿出来以供别人来确认。所以或者拼人品来信任此程序，或者也可以自己注册一个账号来部署自己的docker应用。当然有更好的解决方法也可以联系我。</p>
+    {% if 'nickname' in request.cookies %}
+    <p>已登陆为{{ request.cookies['nickname'] }}</p>
+    {% else %}
+    <form method="post" action="/login/">
+      用户名: <input type="text" name="username" id="username"/>
+      密码: <input type="password" name="password" id="password"/>
+      <input type="submit" name="submit" value="登录">
+    </form>
+    {% endif %}
+    {% autoescape false %}
+    {{ content }}
+    {% endautoescape %}
+  </body>
+</html>
