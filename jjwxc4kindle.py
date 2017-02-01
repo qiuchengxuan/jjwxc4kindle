@@ -7,8 +7,11 @@ from flask import *
 
 app = Flask(__name__)
 
-def make_header():
+def make_header(args=None):
     header = {'User-Agent': 'Kindle'}
+    if args:
+        for k, v in args.items():
+            header[k] = v.encode('gbk')
     return header
 
 def to_utf8_content(content):
@@ -34,6 +37,12 @@ def index():
     body = etree.HTML(r.content.decode('gbk')).find('body')
     content = ''.join([etree.tostring(c) for c in body.getchildren()])
     return render_template('index.html', content=content)
+
+@app.route('/<path:path>')
+def origin(path):
+    url = 'http://m.jjwxc.net/' + path
+    r = requests.get(url, make_header(request.args.to_dict()), cookies=session)
+    return to_utf8_content(r.content)
 
 @app.route('/wap/<path:path>')
 @app.route('/images/<path:path>')
