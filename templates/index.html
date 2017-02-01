@@ -9,9 +9,9 @@
     {% if 'nickname' in request.cookies %}
     <p>已登陆为{{ request.cookies['nickname'] }}</p>
     {% else %}
-    <form method="post" action="/login/">
-      用户名: <input type="text" name="username" id="username"/>
-      密码: <input type="password" name="password" id="password"/>
+    <form method="post" action="/login/wapLogin">
+      用户名: <input type="text" name="loginname" id="loginname"/>
+      密码: <input type="password" name="loginpass" id="loginpass"/>
       <input type="submit" name="submit" value="登录">
     </form>
     {% endif %}

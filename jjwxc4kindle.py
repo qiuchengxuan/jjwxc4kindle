@@ -17,21 +17,32 @@ def make_header(args=None):
 def to_utf8_content(content):
     return content.decode('gbk').replace('gb2312', 'utf-8')
 
-@app.route('/login/', methods=['POST'])
+@app.route('/login/wapLogin', methods=['POST'])
 def login():
-    user = request.form.get('username')
-    passwd = request.form.get('password')
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {'loginmode': 'jjwxc', 'loginname': user, 'loginpass': passwd}
-    r = requests.post('http://m.jjwxc.net/login/wapLogin', data=data,
+    data = {'loginmode': 'jjwxc'}
+    data.update(request.form)
+    r = requests.post('http://m.jjwxc.net/login/wapLogin', data,
                       headers=headers, allow_redirects=False)
     resp = redirect('/')
     for key, value in r.cookies.items():
         resp.set_cookie(key, value)
     return resp
 
+@app.route('/buy/buy_vip', methods=['POST'])
+def buy_vip():
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    data = dict(request.form)
+    r = requests.post('http://m.jjwxc.net/buy/buy_vip', data,
+                      headers=headers, cookies=request.cookies,
+                      allow_redirects=False)
+    if r.status_code == 302:
+        url = r.headers['Location'].replace('http://m.jjwxc.net', '')
+        return redirect(url)
+    return to_utf8_content(r.content).replace('http://m.jjwxc.net', '')
+
 @app.route('/')
-def index():
+def index_page():
     url = 'http://m.jjwxc.net/'
     r = requests.get(url, make_header(request.args.to_dict()),
                      cookies=request.cookies)
@@ -55,32 +66,48 @@ def static_file(path=None):
     return requests.get(url, make_header(request.args.to_dict()),
                         cookies=request.cookies).content
 
-@app.route('/book2/<path:path>')
-def book_page(path):
-    url = 'http://m.jjwxc.net/book2/' + path
-    if '/' not in path or path.split('/', 1)[1] is None:
+@app.route('/vip/<int:book>/<int:chapter>')
+@app.route('/book2/<int:book>')
+@app.route('/book2/<int:book>/<int:chapter>')
+def book_page(book, chapter=None):
+    _ = (book, chapter)
+    url = 'http://m.jjwxc.net/' + request.path
+    if chapter is None:
         r = requests.get(url, make_header(request.args.to_dict()),
                          cookies=request.cookies)
         return to_utf8_content(r.content)
 
     r = requests.get(url, make_header(request.args.to_dict()),
-                     cookies=request.cookies)
-    book, chapter = path.split('/')[:2]
+                     cookies=request.cookies, allow_redirects=False)
+    if r.status_code == 302:
+        url = r.headers['Location'].replace('http://m.jjwxc.net/', '')
+        return redirect(url)
     dom = etree.HTML(r.content.decode('gbk'))
-    content = etree.tostring(dom.xpath('.//div[@class="b module"]')[0])
+    div = dom.xpath('.//div[@class="b module"]')[0]
 
-    def make_menu(book, chapter):
+    def make_menu():
         h2 = E.h2()
-        if int(chapter) > 1:
-            h2.append(E.a(u'上一章', href='/book2/%s/%d' % (book, chapter - 1),
-                          style='float: left'))
-        h2.append(E.a(u'返回书目', href='/book2/%s' % book,
-                      style='position: absolute; left: 50%%'))
-        h2.append(E.a(u'下一章', href='/book2/%s/%d' % (book, chapter + 1),
-                      style='float: right'))
+        links = div.xpath('.//a')[:3]
+        next_chapter = prev_chapter = index = None
+        if links[0].text == u'下一章':
+            if links[1].text == u'上一章':
+                next_chapter, prev_chapter, index = links
+            else:
+                next_chapter, index, _ = links
+        else:
+            prev_chapter, index, _ = links
+        if prev_chapter is not None:
+            prev_chapter.attrib['style'] = 'float: left'
+            h2.append(prev_chapter)
+        index.attrib['style'] = 'position: absolute; left: 50%'
+        h2.append(index)
+        if next_chapter is not None:
+            next_chapter.attrib['style'] = 'float: right'
+            h2.append(next_chapter)
         h2.append(E.br())
         return etree.tostring(h2)
-    menu = make_menu(book, int(chapter))
+    content = etree.tostring(div)
+    menu = make_menu()
     content = render_template('base.html', body=menu + content + menu)
     return content
 
