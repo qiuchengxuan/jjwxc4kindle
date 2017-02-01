@@ -33,7 +33,8 @@ def login():
 @app.route('/')
 def index():
     url = 'http://m.jjwxc.net/'
-    r = requests.get(url, make_header(), cookies=request.cookies)
+    r = requests.get(url, make_header(request.args.to_dict()),
+                     cookies=request.cookies)
     body = etree.HTML(r.content.decode('gbk')).find('body')
     content = ''.join([etree.tostring(c) for c in body.getchildren()])
     return render_template('index.html', content=content)
@@ -51,16 +52,19 @@ def origin(path):
 def static_file(path=None):
     _ = path
     url = 'http://m.jjwxc.net/' + request.path
-    return requests.get(url, make_header(), cookies=request.cookies).content
+    return requests.get(url, make_header(request.args.to_dict()),
+                        cookies=request.cookies).content
 
 @app.route('/book2/<path:path>')
 def book_page(path):
     url = 'http://m.jjwxc.net/book2/' + path
     if '/' not in path or path.split('/', 1)[1] is None:
-        r = requests.get(url, make_header(), cookies=request.cookies)
+        r = requests.get(url, make_header(request.args.to_dict()),
+                         cookies=request.cookies)
         return to_utf8_content(r.content)
 
-    r = requests.get(url, make_header(), cookies=request.cookies)
+    r = requests.get(url, make_header(request.args.to_dict()),
+                     cookies=request.cookies)
     book, chapter = path.split('/')[:2]
     dom = etree.HTML(r.content.decode('gbk'))
     content = etree.tostring(dom.xpath('.//div[@class="b module"]')[0])
