@@ -41,6 +41,13 @@ def buy_vip():
         return redirect(url)
     return to_utf8_content(r.content).replace('http://m.jjwxc.net', '')
 
+@app.route('/static/<path:path>')
+def static_site(path):
+    url = 'http://static.jjwxc.net/' + path
+    r = requests.get(url, make_header(request.args.to_dict()),
+                     cookies=request.cookies)
+    return to_utf8_content(r.content)
+
 @app.route('/')
 def index_page():
     url = 'http://m.jjwxc.net/'
@@ -48,6 +55,7 @@ def index_page():
                      cookies=request.cookies)
     body = etree.HTML(r.content.decode('gbk')).find('body')
     content = ''.join([etree.tostring(c) for c in body.getchildren()])
+    content.replace('static.jjwxc.net', 'static/')
     return render_template('index.html', content=content)
 
 @app.route('/<path:path>')
