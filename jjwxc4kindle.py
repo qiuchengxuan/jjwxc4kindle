@@ -1,11 +1,15 @@
 #!/usr/bin/env python2
 #-*- coding: utf-8 -*-
+import sys
 import requests
+from logging import Logger
+
 from lxml.builder import E
 from lxml import etree
 from flask import *
 
 app = Flask(__name__)
+LOG = Logger(__name__)
 
 def make_header(args=None):
     header = {'User-Agent': 'Kindle'}
@@ -20,7 +24,7 @@ def to_utf8_content(content):
 @app.route('/login/wapLogin', methods=['POST'])
 def login():
     headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-    data = {'loginmode': 'jjwxc'}
+    data = {'login_mode': 'jjwxc'}
     data.update(request.form)
     r = requests.post('http://m.jjwxc.net/login/wapLogin', data,
                       headers=headers, allow_redirects=False)
@@ -120,4 +124,6 @@ def book_page(book, chapter=None):
     return content
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='8080')
+    if len(sys.argv) > 1:
+        port = sys.argv[1]
+    app.run(host='0.0.0.0', port=port)
