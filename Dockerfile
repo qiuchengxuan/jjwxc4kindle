@@ -1,8 +1,8 @@
-FROM python:2.7.13
+FROM debian:stretch
 MAINTAINER qiuchengxuan
 ADD . /app
 WORKDIR /app
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-EXPOSE 8080
-CMD python /app/jjwxc4kindle.py
+RUN apt-get update
+RUN apt-get -y --no-install-recommends install python python-flask python-lxml python-requests
+EXPOSE 8000
+CMD python /app/jjwxc4kindle.py -H 0.0.0.0
